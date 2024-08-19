@@ -1,8 +1,617 @@
+### Servers ###
+
+declare-option -docstring "TOML table of language servers to use
+
+This is set by the 'lsp-filetype-.*' hooks.
+Feel free to override/remove them and pick all your language servers.
+" str lsp_servers %{}
+
+hook -group lsp global WinSetOption filetype=.* %{
+    set-option buffer lsp_servers %{}
+}
+
+hook -group lsp-filetype-c-family global WinSetOption filetype=(?:c|cpp|objc) %{
+    set-option buffer lsp_servers %{
+        [language_server.clangd]
+        roots = ["compile_commands.json", ".clangd", ".git", ".hg"]
+        command = "clangd"
+    }
+}
+
+hook -group lsp-filetype-clojure global WinSetOption filetype=clojure %{
+    set-option buffer lsp_servers %{
+        [language_server.clojure-lsp]
+        roots = ["project.clj", ".git", ".hg"]
+        command = "clojure-lsp"
+        settings_section = "_"
+        [clojure-lsp.settings._]
+        # See https://clojure-lsp.io/settings/#all-settings
+        # source-paths-ignore-regex = ["resources.*", "target.*"]
+    }
+}
+
+hook -group lsp-filetype-cmake global WinSetOption filetype=make %{
+    set-option buffer lsp_servers %{
+        [language_server.cmake-language-server]
+        roots = ["CMakeLists.txt", ".git", ".hg"]
+        command = "cmake-language-server"
+    }
+}
+
+hook -group lsp-filetype-crystal global WinSetOption filetype=crystal %{
+    set-option buffer lsp_servers %{
+        [language_server.crystalline]
+        roots = ["shard.yml"]
+        command = "crystalline"
+    }
+}
+
+hook -group lsp-filetype-css global WinSetOption filetype=(?:css|less|scss) %{
+    set-option buffer lsp_servers %{
+        [language_server.css-language-server]
+        roots = ["package.json", ".git", ".hg"]
+        command = "vscode-css-language-server"
+        args = ["--stdio"]
+    }
+}
+
+hook -group lsp-filetype-d global WinSetOption filetype=(?:d|di) %{
+    set-option buffer lsp_servers %{
+        [language_server.dls]
+        roots = [".git", "dub.sdl", "dub.json"]
+        command = "dls"
+    }
+}
+
+hook -group lsp-filetype-dart global WinSetOption filetype=dart %{
+    set-option buffer lsp_servers %{
+        [language_server.dart-lsp]
+        # start shell to find path to dart analysis server source
+        roots = ["pubspec.yaml", ".git", ".hg"]
+        command = "sh"
+        args = ["-c", "dart \"$(dirname \"$(command -v dart)\")\"/snapshots/analysis_server.dart.snapshot --lsp"]
+    }
+}
+
+hook -group lsp-filetype-elixir global WinSetOption filetype=elixir %{
+    set-option buffer lsp_servers %{
+        [language_server.elixir-ls]
+        roots = ["mix.exs"]
+        command = "elixir-ls"
+        settings_section = "elixirLS"
+        [elixir-ls.settings.elixirLS]
+        # See https://github.com/elixir-lsp/elixir-ls/blob/master/apps/language_server/lib/language_server/server.ex
+        # dialyzerEnable = true
+    }
+}
+
+hook -group lsp-filetype-elm global WinSetOption filetype=elm %{
+    set-option buffer lsp_servers %{
+        [language_server.elm-language-server]
+        roots = ["elm.json"]
+        command = "elm-language-server"
+        args = ["--stdio"]
+        settings_section = "elmLS"
+        [elm-language-server.settings.elmLS]
+        # See https://github.com/elm-tooling/elm-language-server#server-settings
+        runtime = "node"
+        elmPath = "elm"
+        elmFormatPath = "elm-format"
+        elmTestPath = "elm-test"
+    }
+}
+
+hook -group lsp-filetype-elvish global WinSetOption filetype=elvish %{
+    set-option buffer lsp_servers %{
+        [language_server.elvish]
+        roots = [".git", ".hg"]
+        command = "elvish"
+        args = ["-lsp"]
+    }
+}
+
+hook -group lsp-filetype-erlang global WinSetOption filetype=erlang %{
+    set-option buffer lsp_servers %{
+        [language_server.erlang-ls]
+        # See https://github.com/erlang-ls/erlang_ls.git for more information and
+        # how to configure. This default config should work in most cases though.
+        roots = ["rebar.config", "erlang.mk", ".git", ".hg"]
+        command = "erlang_ls"
+    }
+}
+
+hook -group lsp-filetype-go global WinSetOption filetype=go %{
+    set-option buffer lsp_servers %{
+        [language_server.gopls]
+        roots = ["Gopkg.toml", "go.mod", ".git", ".hg"]
+        command = "gopls"
+        [gopls.settings.gopls]
+        # See https://github.com/golang/tools/blob/master/gopls/doc/settings.md
+        # "build.buildFlags" = []
+        hints.assignVariableTypes = true
+        hints.compositeLiteralFields = true
+        hints.compositeLiteralTypes = true
+        hints.constantValues = true
+        hints.functionTypeParameters = true
+        hints.parameterNames = true
+        hints.rangeVariableTypes = true
+        "ui.completion.usePlaceholders" = true
+    }
+}
+
+hook -group lsp-filetype-haskell global WinSetOption filetype=haskell %{
+    set-option buffer lsp_servers %{
+        [language_server.haskell-language-server]
+        roots = ["hie.yaml", "cabal.project", "Setup.hs", "stack.yaml", "*.cabal"]
+        command = "haskell-language-server-wrapper"
+        args = ["--lsp"]
+        settings_section = "_"
+        [haskell-language-server.settings._]
+        # See https://haskell-language-server.readthedocs.io/en/latest/configuration.html
+        # haskell.formattingProvider = "ormolu"
+    }
+}
+
+hook -group lsp-filetype-html global WinSetOption filetype=html %{
+    set-option buffer lsp_servers %{
+        [language_server.html-language-server]
+        roots = ["package.json"]
+        command = "vscode-html-language-server"
+        args = ["--stdio"]
+        settings_section = "_"
+        [html-language-server.settings._]
+        # quotePreference = "single"
+        # javascript.format.semicolons = "insert"
+    }
+}
+
+hook -group lsp-filetype-javascript global WinSetOption filetype=(?:javascript|typescript) %{
+    set-option buffer lsp_servers %{
+        [language_server.typescript-language-server]
+        roots = ["package.json", "tsconfig.json", "jsconfig.json", ".git", ".hg"]
+        command = "typescript-language-server"
+        args = ["--stdio"]
+        settings_section = "_"
+        [typescript-language-server.settings._]
+        # quotePreference = "double"
+        # typescript.format.semicolons = "insert"
+
+        # [language_server.deno-lsp]
+        # roots = ["package.json", "tsconfig.json", ".git", ".hg"]
+        # command = "deno"
+        # args = ["lsp"]
+        # settings_section = "deno"
+        # [deno-lsp.settings.deno]
+        # enable = true
+        # lint = true
+
+        # [language_server.biome]
+        # roots = ["biome.json", "package.json", "tsconfig.json", "jsconfig.json", ".git", ".hg"]
+        # command = "biome"
+        # args = ["lsp-proxy"]
+
+        # [language_server.eslint]
+        # roots = [".eslintrc", ".eslintrc.json"]
+        # command = "eslint-language-server"
+        # args = ["--stdio"]
+        # workaround_eslint = true
+        # [eslint.settings]
+        # codeActionsOnSave = { mode = "all", "source.fixAll.eslint" = true }
+        # format = { enable = true }
+        # quiet = false
+        # rulesCustomizations = []
+        # run = "onType"
+        # validate = "on"
+        # experimental = {}
+        # problems = { shortenToSingleLine = false }
+        # codeAction.disableRuleComment = { enable = true, location = "separateLine" }
+        # codeAction.showDocumentation = { enable = false }
+    }
+}
+
+hook -group lsp-filetype-java global WinSetOption filetype=java %{
+    set-option buffer lsp_servers %{
+        [language_server.jdtls]
+        roots = ["mvnw", "gradlew", ".git", ".hg"]
+        command = "jdtls"
+        [jdtls.settings]
+        # See https://github.dev/eclipse/eclipse.jdt.ls
+        # "java.format.insertSpaces" = true
+    }
+}
+
+hook -group lsp-filetype-json global WinSetOption filetype=json %{
+    set-option buffer lsp_servers %{
+        [language_server.json-language-server]
+        roots = ["package.json"]
+        command = "vscode-json-language-server"
+        args = ["--stdio"]
+    }
+}
+
+hook -group lsp-filetype-julia global WinSetOption filetype=julia %{
+    set-option buffer lsp_servers %{
+        # Requires Julia package "LanguageServer"
+        # Run: `julia --project=@kak-lsp -e 'import Pkg; Pkg.add("LanguageServer")'` to install it
+        # Configuration adapted from https://github.com/neovim/nvim-lspconfig/blob/bcebfac7429cd8234960197dca8de1767f3ef5d3/lua/lspconfig/julials.lua
+        [language_server.julia-language-server]
+        roots = ["Project.toml", ".git", ".hg"]
+        command = "julia"
+        args = [
+            "--startup-file=no",
+            "--history-file=no",
+            "-e",
+            """
+            ls_install_path = joinpath(get(DEPOT_PATH, 1, joinpath(homedir(), ".julia")), "environments", "kak-lsp");
+            pushfirst!(LOAD_PATH, ls_install_path);
+            using LanguageServer;
+            popfirst!(LOAD_PATH);
+            depot_path = get(ENV, "JULIA_DEPOT_PATH", "");
+            server = LanguageServer.LanguageServerInstance(stdin, stdout, "", depot_path);
+            server.runlinter = true;
+            run(server);
+            """,
+        ]
+        [julia-language-server.settings]
+        # See https://github.com/julia-vscode/LanguageServer.jl/blob/master/src/requests/workspace.jl
+        # Format options. See https://github.com/julia-vscode/DocumentFormat.jl/blob/master/src/DocumentFormat.jl
+        # "julia.format.indent" = 4
+        # Lint options. See https://github.com/julia-vscode/StaticLint.jl/blob/master/src/linting/checks.jl
+        # "julia.lint.call" = true
+        # Other options, see https://github.com/julia-vscode/LanguageServer.jl/blob/master/src/requests/workspace.jl
+        # "julia.lint.run" = "true"
+    }
+}
+
+hook -group lsp-filetype-latex global WinSetOption filetype=latex %{
+    set-option buffer lsp_servers %{
+        [language_server.texlab]
+        roots = [".git", ".hg"]
+        command = "texlab"
+        [texlab.settings.texlab]
+        # See https://github.com/latex-lsp/texlab/wiki/Configuration
+        #
+        # Preview configuration for zathura with SyncTeX search.
+        # For other PDF viewers see https://github.com/latex-lsp/texlab/wiki/Previewing
+        forwardSearch.executable = "zathura"
+        forwardSearch.args = [
+            "%p",
+            "--synctex-forward", # Support texlab-forward-search
+            "%l:1:%f",
+            "--synctex-editor-command", # Inverse search: use Control+Left-Mouse-Button to jump to source.
+            """
+                sh -c '
+                    echo "
+                        evaluate-commands -client %%opt{texlab_client} %%{
+                            evaluate-commands -try-client %%opt{jumpclient} %%{
+                                edit -- %%{input} %%{line}
+                            }
+                        }
+                    " | kak -p $kak_session
+                '
+            """,
+        ]
+    }
+}
+
+hook -group lsp-filetype-lua global WinSetOption filetype=lua %{
+    set-option buffer lsp_servers %{
+        [language_server.lua-language-server]
+        roots = [".git", ".hg"]
+        command = "lua-language-server"
+        settings_section = "Lua"
+        [lua-language-server.settings.Lua]
+        # See https://github.com/sumneko/vscode-lua/blob/master/setting/schema.json
+        # diagnostics.enable = true
+    }
+}
+
+hook -group lsp-filetype-markdown global WinSetOption filetype=markdown %{
+    set-option buffer lsp_servers %{
+        [language_server.marksman]
+        roots = [".marksman.toml"]
+        args = ["server"]
+
+        # [language_server.zk]
+        # roots = [".zk"]
+        # command = "zk"
+        # args = ["lsp"]
+    }
+}
+
+hook -group lsp-filetype-nim global WinSetOption filetype=nim %{
+    set-option buffer lsp_servers %{
+        [language_server.nimlsp]
+        roots = ["*.nimble", ".git", ".hg"]
+        command = "nimlsp"
+    }
+}
+
+hook -group lsp-filetype-nix global WinSetOption filetype=nix %{
+    set-option buffer lsp_servers %{
+        [language_server.nil]
+        roots = ["flake.nix", "shell.nix", ".git", ".hg"]
+        command = "nil"
+    }
+}
+
+hook -group lsp-filetype-ocaml global WinSetOption filetype=ocaml %{
+    set-option buffer lsp_servers %{
+        [language_server.ocamllsp]
+        # Often useful to simply do a `touch dune-workspace` in your project root folder if you have problems with root detection
+        roots = ["dune-workspace", "dune-project", "Makefile", "opam", "*.opam", "esy.json", ".git", ".hg", "dune"]
+        command = "ocamllsp"
+        settings_section = "_"
+        [ocamllsp.settings._]
+        # codelens.enable = false
+    }
+}
+
+hook -group lsp-filetype-php global WinSetOption filetype=php %{
+    set-option buffer lsp_servers %{
+        [language_server.intelephense]
+        roots = [".htaccess", "composer.json"]
+        command = "intelephense"
+        args = ["--stdio"]
+        settings_section = "intelephense"
+        [intelephense.settings.intelephense]
+        storagePath = "/tmp/intelephense"
+    }
+}
+
+hook -group lsp-filetype-protobuf global WinSetOption filetype=protobuf %{
+    set-option buffer lsp_servers %{
+        [language_server.pls]
+        roots = [".git", ".hg"]
+        command = "pls" # https://github.com/lasorda/protobuf-language-server
+    }
+}
+
+hook -group lsp-filetype-purescript global WinSetOption filetype=purescript %{
+    set-option buffer lsp_servers %{
+        [language_server.purescript-language-server]
+        roots = ["spago.dhall", "spago.yaml", "package.json", ".git", ".hg"]
+        command = "purescript-language-server"
+        args = ["--stdio"]
+    }
+}
+
+hook -group lsp-filetype-python global WinSetOption filetype=python %{
+    set-option buffer lsp_servers %{
+        [language_server.pylsp]
+        roots = ["requirements.txt", "setup.py", ".git", ".hg"]
+        command = "pylsp"
+        settings_section = "_"
+        [pylsp.settings._]
+        # See https://github.com/python-lsp/python-lsp-server#configuration
+        # pylsp.configurationSources = ["flake8"]
+        pylsp.plugins.jedi_completion.include_params = true
+
+        # [language_server.pyright]
+        # roots = ["requirements.txt", "setup.py", "pyrightconfig.json", ".git", ".hg"]
+        # command = "pyright-langserver"
+        # args = ["--stdio"]
+
+        # [language_server.ruff]
+        # roots = ["requirements.txt", "setup.py", ".git", ".hg"]
+        # command = "ruff-lsp"
+        # settings_section = "_"
+        # [ruff.settings._.globalSettings]
+        # organizeImports = true
+        # fixAll = true
+    }
+}
+
+hook -group lsp-filetype-r global WinSetOption filetype=r %{
+    set-option buffer lsp_servers %{
+        [language_server.r-language-server]
+        roots = ["DESCRIPTION", ".git", ".hg"]
+        command = "R"
+        args = ["--slave", "-e", "languageserver::run()"]
+    }
+}
+
+hook -group lsp-filetype-racket global WinSetOption filetype=racket %{
+    set-option buffer lsp_servers %{
+        [language_server.racket-language-server]
+        roots = ["info.rkt"]
+        command = "racket"
+        args = ["-l", "racket-langserver"]
+    }
+}
+
+hook -group lsp-filetype-reason global WinSetOption filetype=reason %{
+    set-option buffer lsp_servers %{
+        [language_server.reason-ocamllsp]
+        roots = ["package.json", "Makefile", ".git", ".hg"]
+        command = "ocamllsp"
+    }
+}
+
+hook -group lsp-filetype-rust global WinSetOption filetype=rust %{
+    set-option buffer lsp_servers %{
+        [language_server.rust-analyzer]
+        roots = ["Cargo.toml"]
+        command = "sh"
+        args = [
+            "-c",
+            """
+                # if path=$(rustup which rust-analyzer 2>/dev/null); then
+                #     exec "$path"
+                # else
+                    exec rust-analyzer
+                fi
+            """,
+        ]
+        [rust-analyzer.experimental]
+        commands.commands = ["rust-analyzer.runSingle"]
+        hoverActions = true
+        [rust-analyzer.settings.rust-analyzer]
+        # See https://rust-analyzer.github.io/manual.html#configuration
+        # cargo.features = []
+        check.command = "clippy"
+    }
+}
+
+hook -group lsp-filetype-ruby global WinSetOption filetype=ruby %{
+    set-option buffer lsp_servers %{
+        [language_server.solargraph]
+        roots = ["Gemfile"]
+        command = "solargraph"
+        args = ["stdio"]
+        settings_section = "_"
+        [solargraph.settings._]
+        # See https://github.com/castwide/solargraph/blob/master/lib/solargraph/language_server/host.rb
+        # diagnostics = false
+    }
+}
+
+# See https://scalameta.org/metals/docs/integrations/new-editor
+hook -group lsp-filetype-scala global WinSetOption filetype=scala %{
+    set-option buffer lsp_servers %{
+        [language_server.metals]
+        roots = ["build.sbt", ".scala-build"]
+        command = "metals"
+        args = ["-Dmetals.extensions=false"]
+        settings_section = "metals"
+        [metals.settings.metals]
+        icons = "unicode"
+        isHttpEnabled = true
+        statusBarProvider = "show-message"
+        compilerOptions = { overrideDefFormat = "unicode" }
+        inlayHints.hintsInPatternMatch.enable = true
+        inlayHints.implicitArguments.enable = true
+        inlayHints.implicitConversions.enable = true
+        inlayHints.inferredTypes.enable = true
+        inlayHints.typeParameters.enable = true
+    }
+}
+
+hook -group lsp-filetype-sh global WinSetOption filetype=sh %{
+    set-option buffer lsp_servers %{
+        [language_server.bash-language-server]
+        roots = [".git", ".hg"]
+        command = "bash-language-server"
+        args = ["start"]
+    }
+}
+
+hook -group lsp-filetype-svelte global WinSetOption filetype=svelte %{
+    set-option buffer lsp_servers %{
+        [language_server.svelte-language-server]
+        roots = ["package.json", "tsconfig.json", "jsconfig.json", ".git", ".hg"]
+        command = "svelteserver"
+        args = ["--stdio"]
+    }
+}
+
+hook -group lsp-filetype-terraform global WinSetOption filetype=terraform %{
+    set-option buffer lsp_servers %{
+        [language_server.terraform-ls]
+        roots = ["*.tf"]
+        command = "terraform-ls"
+        args = ["serve"]
+        [terraform-ls.settings.terraform-ls]
+        # See https://github.com/hashicorp/terraform-ls/blob/main/docs/SETTINGS.md
+        # rootModulePaths = []
+    }
+}
+
+hook -group lsp-filetype-toml global WinSetOption filetype=toml %{
+    set-option buffer lsp_servers %{
+        [language_server.taplo]
+        roots = [".git", ".hg"]
+        command = "taplo"
+        args = ["lsp", "stdio"]
+    }
+}
+
+hook -group lsp-filetype-yaml global WinSetOption filetype=yaml %{
+    set-option buffer lsp_servers %{
+        [language_server.yaml-language-server]
+        roots = [".git", ".hg"]
+        command = "yaml-language-server"
+        args = ["--stdio"]
+        settings_section = "yaml"
+        [yaml-language-server.settings.yaml]
+        # See https://github.com/redhat-developer/yaml-language-server#language-server-settings
+        # Defaults are at https://github.com/redhat-developer/yaml-language-server/blob/master/src/yamlSettings.ts
+        # format.enable = true
+    }
+}
+
+hook -group lsp-filetype-zig global WinSetOption filetype=zig %{
+    set-option buffer lsp_servers %{
+        [language_server.zls]
+        roots = ["build.zig"]
+        command = "zls"
+    }
+}
+
+### Language ID ###
+# See https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentItem
+
+declare-option -docstring "LSP languageId, usually same as filetype option" str lsp_language_id
+
+hook -group lsp-filetype global WinSetOption filetype=(.*) %{
+    set-option buffer lsp_language_id %val{hook_param_capture_1}
+}
+
+hook -group lsp-filetype global WinSetOption filetype=(?:c|cpp) %{
+    set-option buffer lsp_language_id c_cpp
+}
+hook -group lsp-filetype global WinSetOption filetype=javascript %{
+    set-option buffer lsp_language_id javascriptreact
+}
+hook -group lsp-filetype global WinSetOption filetype=typescript %{
+    set-option buffer lsp_language_id typescriptreact
+}
+hook -group lsp-filetype global WinSetOption filetype=protobuf %{
+    set-option buffer lsp_language_id proto
+}
+hook -group lsp-filetype global WinSetOption filetype=sh %{
+    set-option buffer lsp_language_id shellscript
+}
+
 ### Options and faces ###
 
 # Feel free to update path and arguments according to your setup when sourcing lsp.kak directly.
 # Sourcing via `kak-lsp --kakoune` does it automatically.
 declare-option -docstring "Command with which lsp is run" str lsp_cmd "kak-lsp -s %val{session}"
+
+declare-option -docstring "Snippet support (completions with placeholders)" bool lsp_snippet_support true
+declare-option -docstring "File watcher support" bool lsp_file_watch_support false
+
+declare-option -docstring %{
+    Exit session if no requests were received during given period in seconds
+    set to 0 to disable
+} int lsp_timeout 1800
+
+declare-option -docstring %{
+    TOML table of faces to apply by token kind
+
+    See https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_semanticTokens
+    for the default list of tokens and modifiers.
+    However, many language servers implement their own values.
+    Make sure to check the output of `lsp-capabilities` and each server's documentation and source code as well.
+    Examples:
+    - TypeScript: https://github.com/microsoft/vscode-languageserver-node/blob/main/client/src/common/semanticTokens.ts
+    - Rust Analyzer: https://github.com/rust-analyzer/rust-analyzer/blob/master/crates/ide/src/syntax_highlighting.rs
+} str lsp_semantic_tokens %{
+    faces = [
+        {face="documentation", token="comment", modifiers=["documentation"]},
+        {face="comment", token="comment"},
+        {face="function", token="function"},
+        {face="keyword", token="keyword"},
+        {face="module", token="namespace"},
+        {face="operator", token="operator"},
+        {face="string", token="string"},
+        {face="type", token="type"},
+        {face="default+d", token="variable", modifiers=["readonly"]},
+        {face="default+d", token="variable", modifiers=["constant"]},
+        {face="variable", token="variable"},
+    ]
+}
 
 # Faces
 
@@ -74,19 +683,9 @@ declare-option -docstring "Set it to a positive number to limit the information 
 declare-option -hidden -docstring "DEPRECATED, use %opt{lsp_hover_max_info_lines}. Set it to a positive number to limit the information in the lsp hover output. Use 0 to disable the limit. Use -1 to use lsp_hover_max_info_lines instead." int lsp_hover_max_lines -1
 declare-option -docstring "Set it to a positive number to limit the diagnostics in the lsp hover output. Use 0 to disable the limit" int lsp_hover_max_diagnostic_lines 20
 
-declare-option -docstring "Dynamic TOML configuration string. Currently supports
-- [language.<filetype>.settings]
-" str lsp_config
-# Highlight TOML keys in kakrc if they are supported by dynamic configuration.
-try %{
-    add-highlighter shared/kakrc/code/lsp_keywords regex \[(language\.[a-z_]+\.settings(?:\.[^\]\n]*)?)\] 1:title
-} catch %{
-    hook global -once ModuleLoaded kak %{
-        add-highlighter shared/kakrc/code/lsp_keywords regex \[(language\.[a-z_]+\.settings(?:\.[^\]\n]*)?)\] 1:title
-    }
-}
-declare-option -hidden -docstring "DEPRECATED, use %opt{lsp_config}. Configuration to send in workspace/didChangeConfiguration messages" str-to-str-map lsp_server_configuration
-declare-option -hidden -docstring "DEPRECATED, use %opt{lsp_config}. Configuration to send in initializationOptions of Initialize messages." str-to-str-map lsp_server_initialization_options
+declare-option -hidden -docstring "DEPRECATED, use %opt{lsp_servers}. TOML table with server-specific settings. Must declare [language_server.<filetype>.settings]" str lsp_config
+declare-option -hidden -docstring "DEPRECATED, use %opt{lsp_servers}. Configuration to send in workspace/didChangeConfiguration messages" str-to-str-map lsp_server_configuration
+declare-option -hidden -docstring "DEPRECATED, use %opt{lsp_servers}. Configuration to send in initializationOptions of Initialize messages." str-to-str-map lsp_server_initialization_options
 # Line flags for inline diagnostics.
 declare-option -docstring "Character to signal an error in the gutter" str lsp_diagnostic_line_error_sign '*'
 declare-option -docstring "Character to signal a hint in the gutter" str lsp_diagnostic_line_hint_sign '-'
@@ -373,6 +972,12 @@ declare-option -docstring "Number of warnings" int lsp_diagnostic_warning_count 
 
 # Internal variables.
 
+declare-option -hidden str lsp_request %{
+    ${kak_opt_lsp_cmd} --request \
+        --snippet-support ${kak_opt_lsp_snippet_support} \
+        --file-watch-support ${kak_opt_lsp_file_watch_support} \
+        --timeout ${kak_opt_lsp_timeout}
+}
 declare-option -hidden completions lsp_completions
 declare-option -hidden int lsp_completions_timestamp -1
 declare-option -hidden int lsp_completions_selected_item
@@ -382,7 +987,7 @@ declare-option -hidden line-specs lsp_inlay_diagnostics
 declare-option -hidden range-specs cquery_semhl
 declare-option -hidden int lsp_timestamp -1
 declare-option -hidden range-specs lsp_references
-declare-option -hidden range-specs lsp_semantic_tokens
+declare-option -hidden range-specs lsp_semantic_tokens_ranges
 declare-option -hidden range-specs lsp_inlay_hints
 declare-option -hidden line-specs lsp_inlay_code_lenses
 declare-option -hidden line-specs lsp_code_lenses 0 '0| '
@@ -423,14 +1028,17 @@ lsp_draft=${lsp_draft%.}
 printf %s "
 session  = \"${kak_session}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/didChange\"
 hook     = true
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 draft    = \"\"\"
 ${lsp_draft}\"\"\"
-" | eval "${kak_opt_lsp_cmd} --request"
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
 ) > /dev/null 2>&1 < /dev/null &
         }
         execute-keys -draft '%<a-|><ret>'
@@ -457,14 +1065,17 @@ lsp_draft=${lsp_draft%.}
 printf %s "
 session  = \"${kak_session}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/didChange\"
 hook     = true
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 draft    = \"\"\"
 ${lsp_draft}\"\"\"
-" | eval "${kak_opt_lsp_cmd} --request"
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
         }
         execute-keys -draft '%<a-|><ret>'
     }
@@ -492,16 +1103,20 @@ try %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/completion\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
 [params.completion]
 offset   = ${kak_opt_lsp_completion_offset}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }}
 
 declare-option -hidden str-list lsp_completion_inserted_ranges
@@ -544,16 +1159,20 @@ define-command -hidden lsp-completion-item-resolve-request -params 1 \
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"completionItem/resolve\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 completion_item_timestamp = ${kak_opt_lsp_completions_timestamp}
 completion_item_index = ${index}
 pager_active = ${1}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
-}
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
+    }
 
 define-command lsp-hover -docstring "Request hover info for the main cursor position" %{
     lsp-hover-request
@@ -578,15 +1197,19 @@ define-command -hidden lsp-hover-request -params 0..1 -docstring "Request hover 
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/hover\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 $hover_buffer_args
 selectionDesc = \"${kak_selection_desc}\"
 tabstop = ${kak_opt_tabstop}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 declare-option -hidden str lsp_symbol_kind_completion %{
@@ -662,17 +1285,21 @@ define-command lsp-next-or-previous-symbol -hidden -params 2.. %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"kakoune/next-or-previous-symbol\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 position.line   = ${kak_cursor_line}
 position.column = ${kak_cursor_column}
 symbolKinds     = $symbol_kinds
 searchNext      = $forward
 hover           = $hover
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 } -shell-script-candidates %{
     case $# in
         # Search forward or backward?
@@ -713,10 +1340,13 @@ The value of the lsp_object_mode option controls the direction. It must be one o
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"kakoune/object\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 count           = $kak_count
 mode            = \"$kak_opt_lsp_object_mode\"
@@ -724,7 +1354,8 @@ position.line = ${kak_cursor_line}
 position.column = ${kak_cursor_column}
 selections_desc = \"${kak_selections_desc}\"
 symbol_kinds    = [$([ $# -gt 0 ] && printf '"%s",' "$@")]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden lsp-get-word-regex %{
@@ -743,15 +1374,19 @@ define-command lsp-definition -docstring "Go to definition" %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/definition\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
 word_regex = '''${kak_reg_a}'''
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line      = ${kak_cursor_line}
 column    = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
     }
 }
 
@@ -760,14 +1395,18 @@ define-command lsp-declaration -docstring "Go to declaration" %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/declaration\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line      = ${kak_cursor_line}
 column    = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-implementation -docstring "Go to implementation" %{
@@ -775,14 +1414,18 @@ define-command lsp-implementation -docstring "Go to implementation" %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/implementation\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-type-definition -docstring "Go to type-definition" %{
@@ -790,14 +1433,18 @@ define-command lsp-type-definition -docstring "Go to type-definition" %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/typeDefinition\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-code-actions -params 0.. -docstring %{
@@ -890,18 +1537,22 @@ command_fifo = \"$kak_command_fifo\"
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/codeAction\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
 ${fifo}\
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 selectionDesc    = \"${kak_selection_desc}\"
 performCodeAction = $do_perform
 autoSingle = $auto_single
 $only
 $code_action_pattern
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null &
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null &
 
     if "$sync"; then
         cat ${pipe}
@@ -916,27 +1567,35 @@ define-command -hidden lsp-code-action-resolve-request -params 1 \
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"codeAction/resolve\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 codeAction = \"$(printf %s "${1}" | sed 's/\\/\\\\/g; s/"/\\"/g')\"
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
-}
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
+    }
 
 define-command lsp-code-lens -docstring "apply a code lens from the current selection" %{
     nop %sh{ (printf %s "
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"kakoune/textDocument/codeLens\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 selectionDesc    = \"${kak_selection_desc}\"
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-execute-command -params 2 -docstring "lsp-execute-command <command> <args>: execute a server-specific command" %{
@@ -963,15 +1622,19 @@ command_fifo = \"$kak_command_fifo\""
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 ${fifo}
 method   = \"workspace/executeCommand\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 command = \"$2\"
 arguments = $3
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null &
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null &
 
     if "$sync"; then
         cat ${pipe}
@@ -986,15 +1649,19 @@ define-command lsp-references -docstring "Open buffer with symbol references" %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/references\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
 word_regex = '''${kak_reg_a}'''
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
     }
 }
 
@@ -1005,15 +1672,19 @@ define-command lsp-highlight-references -docstring "Highlight symbol references"
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/documentHighlight\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
 word_regex = '''${kak_reg_a}'''
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
     }
 }
 
@@ -1022,16 +1693,20 @@ define-command lsp-rename -params 1 -docstring "lsp-rename <new-name>: rename sy
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/rename\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 newName  = \"$1\"
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-rename-prompt -docstring "Rename symbol under the main cursor (prompt for a new name)" %{
@@ -1064,15 +1739,19 @@ If cached is given, reuse the ranges from a previous invocation." %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/selectionRange\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 position.line = ${kak_cursor_line}
 position.column = ${kak_cursor_column}
 selections_desc = \"${kak_selections_desc}\"
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 declare-option -hidden str-list lsp_selection_ranges
@@ -1114,14 +1793,18 @@ define-command lsp-signature-help -docstring "Request signature help for the mai
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/signatureHelp\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-diagnostics -docstring "Open buffer with project-wide diagnostics for current filetype" %{
@@ -1129,12 +1812,16 @@ define-command lsp-diagnostics -docstring "Open buffer with project-wide diagnos
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/diagnostics\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-document-symbol -docstring "Open buffer with document symbols" %{
@@ -1142,12 +1829,16 @@ define-command lsp-document-symbol -docstring "Open buffer with document symbols
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/documentSymbol\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-goto-document-symbol -params 0..1 -docstring "lsp-goto-document-symbol [<name>]: pick a symbol from current buffer to jump to
@@ -1157,17 +1848,21 @@ If <name> is given, jump to the symbol of that name." %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"kakoune/goto-document-symbol\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 $([ \"\" = \"${1:-}\" ] || echo goto_symbol = \"${1}\")
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden lsp-workspace-symbol-buffer -params 4 -docstring %{
-    buffile filetype timestamp query
+    buffile language_id timestamp query
     Open buffer with a list of project-wide symbols matching the query
     on behalf of the buffile at timestamp
 } %{ try %{
@@ -1181,13 +1876,17 @@ define-command -hidden lsp-workspace-symbol-buffer -params 4 -docstring %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${1}\"
-filetype = \"${2}\"
+language_id = \"${2}\"
 version  = ${3}
 method   = \"workspace/symbol\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 query    = \"${4}\"
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }}
 
 define-command lsp-capabilities -docstring "List available commands for current filetype" %{
@@ -1195,12 +1894,16 @@ define-command lsp-capabilities -docstring "List available commands for current 
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"capabilities\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden lsp-did-open %{
@@ -1216,14 +1919,18 @@ printf %s "
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/didOpen\"
 hook     = true
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 draft    = \"\"\"
 ${lsp_draft}\"\"\"
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
         execute-keys -draft '%<a-|><ret>'
     }
 }
@@ -1233,12 +1940,16 @@ define-command -hidden lsp-did-close %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/didClose\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden lsp-did-save %{
@@ -1246,12 +1957,16 @@ define-command -hidden lsp-did-save %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/didSave\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden lsp-did-change-config %{
@@ -1260,10 +1975,13 @@ define-command -hidden lsp-did-change-config %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"workspace/didChangeConfiguration\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.settings]
 lsp_config = \"\"\"$(printf %s "${kak_opt_lsp_config}" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')\"\"\"
 "
@@ -1278,7 +1996,8 @@ while [ $# -gt 0 ]; do
 
     shift
 done
-) | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+) | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden lsp-exit-editor-session -docstring "Shutdown language servers associated with current editor session but keep kakoune-lsp session running" %{
@@ -1287,12 +2006,16 @@ define-command -hidden lsp-exit-editor-session -docstring "Shutdown language ser
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"exit\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-cancel-progress -params 1 -docstring "lsp-cancel-progress <token>: cancel a cancelable progress item." %{
@@ -1300,13 +2023,17 @@ define-command lsp-cancel-progress -params 1 -docstring "lsp-cancel-progress <to
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"window/workDoneProgress/cancel\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 token    = \"$1\"
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-apply-workspace-edit -params 1 -hidden %{
@@ -1332,14 +2059,18 @@ command_fifo = \"$kak_command_fifo\""
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 ${fifo}
 method   = \"apply-workspace-edit\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 edit     = $2
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null &
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null &
 
     if "$sync"; then
         cat ${pipe}
@@ -1352,13 +2083,17 @@ define-command lsp-apply-text-edits -params 1 -hidden %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"apply-text-edits\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 edit     = $1
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-stop -docstring "Stop kakoune-lsp session" %{
@@ -1367,12 +2102,16 @@ define-command lsp-stop -docstring "Stop kakoune-lsp session" %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"stop\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-formatting -params 0..1 -docstring "lsp-formatting [<server_name>]: format document" %{
@@ -1401,16 +2140,20 @@ command_fifo = \"$kak_command_fifo\""
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 ${fifo}
 method   = \"textDocument/formatting\"
 $([ -z ${2} ] || echo server = \"${2}\")
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 tabSize      = ${kak_opt_tabstop}
 insertSpaces = ${kak_opt_lsp_insert_spaces}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null &
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null &
 
     if "$sync"; then
         cat ${pipe}
@@ -1462,17 +2205,21 @@ done)"
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/rangeFormatting\"
 $([ -z ${2} ] || echo server = \"${2}\")
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
 ${fifo}
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 tabSize      = ${kak_opt_tabstop}
 insertSpaces = ${kak_opt_lsp_insert_spaces}
 ${ranges_str}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null &
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null &
 
     if "$sync"; then
         cat ${pipe}
@@ -1493,15 +2240,19 @@ define-command -hidden lsp-call-hierarchy-request -params 1 %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/prepareCallHierarchy\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 position.line = ${kak_cursor_line}
 position.column = ${kak_cursor_column}
 incomingOrOutgoing = $1
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden lsp-breadcrumbs-request -docstring "request updating modeline breadcrumbs for the window" %{
@@ -1510,13 +2261,17 @@ define-command -hidden lsp-breadcrumbs-request -docstring "request updating mode
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"kakoune/breadcrumbs\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 position_line = $kak_cursor_line
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden lsp-inlay-hints -docstring "lsp-inlay-hints: request inlay hints" %{
@@ -1528,13 +2283,17 @@ define-command -hidden lsp-inlay-hints -docstring "lsp-inlay-hints: request inla
         (printf %s "
 session  = \"${kak_session}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/inlayHint\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 buf_line_count = ${kak_buf_line_count}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 # CCLS Extension
@@ -1544,16 +2303,20 @@ define-command ccls-navigate -docstring "Navigate C/C++/ObjectiveC file" -params
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"\$ccls/navigate\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 direction = \"$1\"
 [params.position]
 line      = ${kak_cursor_line}
 column    = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command ccls-vars -docstring "ccls-vars: Find instances of symbol at point." %{
@@ -1561,14 +2324,18 @@ define-command ccls-vars -docstring "ccls-vars: Find instances of symbol at poin
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"\$ccls/vars\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command ccls-inheritance -params 1..2 -docstring "ccls-inheritance <derived|base> [levels]: Find base- or derived classes of symbol at point." %{
@@ -1582,17 +2349,21 @@ define-command ccls-inheritance -params 1..2 -docstring "ccls-inheritance <deriv
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"\$ccls/inheritance\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 derived  = $derived
 levels   = $levels
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command ccls-call -params 1 -docstring "ccls-call <caller|callee>: Find callers or callees of symbol at point." %{
@@ -1605,16 +2376,20 @@ define-command ccls-call -params 1 -docstring "ccls-call <caller|callee>: Find c
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"\$ccls/call\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 callee   = $callee
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command ccls-member -params 1 -docstring "ccls-member <vars|types|functions>: Find member variables/types/functions of symbol at point." %{
@@ -1629,16 +2404,20 @@ define-command ccls-member -params 1 -docstring "ccls-member <vars|types|functio
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"\$ccls/member\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 kind     = $kind
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 # clangd Extensions
@@ -1648,12 +2427,16 @@ define-command clangd-switch-source-header -docstring "clangd-switch-source-head
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/switchSourceHeader\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 # eclipse.jdt.ls Extension
@@ -1663,12 +2446,16 @@ define-command ejdtls-organize-imports -docstring "ejdtls-organize-imports: Orga
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"eclipse.jdt.ls/organizeImports\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 # rust-analyzer extensions
@@ -1678,14 +2465,18 @@ define-command rust-analyzer-expand-macro -docstring "Expand macro recursively" 
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"rust-analyzer/expandMacro\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command -hidden rust-analyzer-inlay-hints -docstring "DEPRECATED, use lsp-inlay-hints-enable. request inlay hints" %{
@@ -1703,14 +2494,18 @@ To configure the PDF viewer, use texlab's options 'forwardSearch.executable' and
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/forwardSearch\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params.position]
 line     = ${kak_cursor_line}
 column   = ${kak_cursor_column}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command texlab-build -docstring "Ask the texlab language server to build the LaTeX document" %{
@@ -1718,12 +2513,16 @@ define-command texlab-build -docstring "Ask the texlab language server to build 
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/build\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 # semantic tokens
@@ -1737,12 +2536,16 @@ define-command lsp-semantic-tokens -docstring "lsp-semantic-tokens: Request sema
         ( printf %s "
 session  = \"${kak_session}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"textDocument/semanticTokens/full\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 ### Response handling ###
@@ -1887,12 +2690,16 @@ define-command lsp-show-message-request-next -docstring "Show the next pending m
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"window/showMessageRequest/showNext\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
 }
 
 define-command lsp-show-message-request-respond -params 1..2 -hidden %{
@@ -1900,15 +2707,19 @@ define-command lsp-show-message-request-respond -params 1..2 -hidden %{
 session  = \"${kak_session}\"
 client   = \"${kak_client}\"
 buffile  = \"${kak_buffile}\"
-filetype = \"${kak_opt_filetype}\"
+language_id = \"${kak_opt_lsp_language_id}\"
 version  = ${kak_timestamp:-0}
 method   = \"window/showMessageRequest/respond\"
 $([ -z ${kak_hook_param+x} ] || echo hook = true)
+${kak_opt_lsp_servers}
+[semantic_tokens]
+${kak_opt_lsp_semantic_tokens}
 [params]
 message_request_id = $1
 [params.item]
 ${2:-""}
-" | eval "${kak_opt_lsp_cmd} --request") > /dev/null 2>&1 < /dev/null & }
+" | eval "${kak_opt_lsp_request}" # kak_opt_lsp_cmd kak_opt_lsp_snippet_support kak_opt_lsp_file_watch_support kak_opt_lsp_timeout
+) > /dev/null 2>&1 < /dev/null & }
     # Close the info
     execute-keys "<esc>"
 }
@@ -2079,12 +2890,12 @@ Jump to the next or previous diagnostic error" %{
 }
 
 define-command lsp-workspace-symbol -params 1 -docstring "lsp-workspace-symbol <query>: open buffer with matching project-wide symbols" %{
-    lsp-workspace-symbol-buffer %val{buffile} %opt{filetype} %val{timestamp} %arg{1}
+    lsp-workspace-symbol-buffer %val{buffile} %opt{lsp_language_id} %val{timestamp} %arg{1}
 }
 
 define-command lsp-workspace-symbol-incr -docstring "Open buffer with an incrementally updated list of project-wide symbols matching the query" %{
     declare-option -hidden str lsp_ws_buffile %val{buffile}
-    declare-option -hidden str lsp_ws_filetype %opt{filetype}
+    declare-option -hidden str lsp_ws_language_id %opt{lsp_language_id}
     declare-option -hidden int lsp_ws_timestamp %val{timestamp}
     declare-option -hidden str lsp_ws_query
     evaluate-commands -try-client %opt[toolsclient] %{
@@ -2098,7 +2909,7 @@ define-command lsp-workspace-symbol-incr -docstring "Open buffer with an increme
                 else echo 'set current lsp_ws_query %val{text}';
                 fi
             }
-            lsp-workspace-symbol-buffer %opt{lsp_ws_buffile} %opt{lsp_ws_filetype} %opt{lsp_ws_timestamp} %val{text}
+            lsp-workspace-symbol-buffer %opt{lsp_ws_buffile} %opt{lsp_ws_language_id} %opt{lsp_ws_timestamp} %val{text}
         }} -on-abort %{execute-keys ga} 'Query: ' nop
         focus %val{client}
     }
@@ -2311,7 +3122,7 @@ define-command -hidden lsp-enable-impl -params 1 %{
         fail 'LSP already enabled at %arg{1} scope'
     "
     add-highlighter "%arg{1}/lsp_references" ranges lsp_references
-    add-highlighter "%arg{1}/lsp_semantic_tokens" ranges lsp_semantic_tokens
+    add-highlighter "%arg{1}/lsp_semantic_tokens_ranges" ranges lsp_semantic_tokens_ranges
     add-highlighter "%arg{1}/lsp_snippets_placeholders" ranges lsp_snippets_placeholders
     lsp-inline-diagnostics-enable %arg{1}
     lsp-diagnostic-lines-enable %arg{1}
@@ -2346,7 +3157,7 @@ define-command -hidden lsp-enable-impl -params 1 %{
 define-command -hidden lsp-disable-impl -params 1 %{
     remove-highlighter "%arg{1}/cquery_semhl"
     remove-highlighter "%arg{1}/lsp_references"
-    remove-highlighter "%arg{1}/lsp_semantic_tokens"
+    remove-highlighter "%arg{1}/lsp_semantic_tokens_ranges"
     remove-highlighter "%arg{1}/lsp_snippets_placeholders"
     lsp-inline-diagnostics-disable %arg{1}
     lsp-diagnostic-lines-disable %arg{1}
@@ -2729,7 +3540,6 @@ define-command -hidden lsp-diagnostics-open-error -params 4 %{
 }
 
 declare-option -docstring 'name of the client in which documentation is to be displayed' str docsclient
-
 hook global -once KakBegin .* %{
     try %{
         require-module jump

@@ -16,8 +16,9 @@ const fn default_true() -> bool {
     true
 }
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Default, Deserialize, Debug)]
 pub struct Config {
+    #[deprecated(note = "use EditorMeta::language_server")]
     #[serde(default)]
     pub language_server: HashMap<ServerName, LanguageServerConfig>,
     #[deprecated(note = "use language_server")]
@@ -25,14 +26,18 @@ pub struct Config {
     pub language: HashMap<LanguageId, LanguageServerConfig>,
     #[serde(default)]
     pub server: ServerConfig,
+    #[deprecated(note = "use -v argument")]
+    #[allow(dead_code)]
     #[serde(default)]
-    pub verbosity: u8,
+    verbosity: u8,
     #[serde(default = "default_true")]
     pub snippet_support: bool,
     #[serde(default)]
     pub file_watch_support: bool,
+    #[deprecated(note = "use EditorMeta::semantic_tokens")]
     #[serde(default)]
     pub semantic_tokens: SemanticTokenConfig,
+    #[deprecated]
     #[serde(default)]
     pub language_ids: HashMap<String, LanguageId>,
 }
@@ -54,7 +59,10 @@ pub struct ServerConfig {
 #[derive(Clone, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct LanguageServerConfig {
-    pub filetypes: Vec<String>,
+    #[deprecated]
+    #[allow(dead_code)]
+    #[serde(default)]
+    filetypes: Vec<String>,
     pub roots: Vec<String>,
     pub command: Option<String>,
     #[serde(default)]
@@ -138,10 +146,12 @@ pub struct SemanticTokenFace {
 
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct EditorMeta {
+    pub language_server: HashMap<ServerName, LanguageServerConfig>,
+    pub semantic_tokens: SemanticTokenConfig,
     pub session: String,
     pub client: Option<String>,
     pub buffile: String,
-    pub filetype: String,
+    pub language_id: String,
     pub version: i32,
     pub fifo: Option<String>,
     pub command_fifo: Option<String>,
@@ -149,6 +159,30 @@ pub struct EditorMeta {
     pub hook: bool,
     pub server: Option<ServerName>,
     pub word_regex: Option<String>,
+}
+
+pub fn server_configs<'a>(
+    config: &'a Config,
+    meta: &'a EditorMeta,
+) -> &'a HashMap<ServerName, LanguageServerConfig> {
+    #[allow(deprecated)]
+    if !config.language_server.is_empty() {
+        &config.language_server
+    } else {
+        &meta.language_server
+    }
+}
+
+pub fn semantic_tokens_config<'a>(
+    config: &'a Config,
+    meta: &'a EditorMeta,
+) -> &'a [SemanticTokenFace] {
+    #[allow(deprecated)]
+    if !config.semantic_tokens.faces.is_empty() {
+        &config.semantic_tokens.faces
+    } else {
+        &meta.semantic_tokens.faces
+    }
 }
 
 pub type EditorParams = toml::Value;

@@ -43,9 +43,6 @@ pub fn start(
     }
     let editor = editor.unwrap();
 
-    let languages = config.language_server.clone();
-    let filetypes = filetype_to_language_id_map(config);
-
     let mut controllers: Controllers = HashMap::default();
 
     let timeout = config.server.timeout;
@@ -95,11 +92,10 @@ pub fn start(
                     continue 'event_loop;
                 }
 
-                let cfg = filetypes.get(&request.meta.filetype);
-                if cfg.is_none() {
+                if request.meta.language_server.is_empty() {
                     let msg = format!(
-                        "Language server is not configured for filetype `{}`",
-                        &request.meta.filetype
+                        "Language server is not configured for language ID `{}`",
+                        &request.meta.language_id
                     );
                     debug!("{}", msg);
                     return_request_error(editor.to_editor.sender(), &request, &msg);
@@ -107,12 +103,10 @@ pub fn start(
                     continue 'event_loop;
                 }
 
-                let (language_id, servers) = cfg.unwrap();
-                let routes: Vec<_> = servers
+                let routes: Vec<_> = server_configs(config, &request.meta)
                     .iter()
-                    .map(|server_name| {
-                        let language  = &languages[server_name];
-                        let root = find_project_root(language_id, &language.roots, &request.meta.buffile);
+                    .map(|(server_name, server_config)| {
+                        let root = find_project_root(&request.meta.language_id, &server_config.roots, &request.meta.buffile);
                         let route = Route {
                             session: request.meta.session.clone(),
                             server_name: server_name.clone(),
@@ -148,7 +142,7 @@ pub fn start(
                             controller_entry.insert(spawn_controller(
                                 config.clone(),
                                 log_path,
-                                language_id.clone(),
+                                request.meta.language_id.clone(),
                                 routes,
                                 request,
                                 editor.to_editor.sender().clone(),

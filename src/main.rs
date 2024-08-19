@@ -84,6 +84,7 @@ fn main() {
         )
         .arg(
             Arg::new("config")
+                .hide(true)
                 .short('c')
                 .long("config")
                 .value_name("FILE")
@@ -105,18 +106,32 @@ fn main() {
                 .help("Session id to communicate via unix socket"),
         )
         .arg(
-            Arg::new("timeout")
-                .short('t')
-                .long("timeout")
-                .value_name("TIMEOUT")
-                .help("Session timeout in seconds (default 1800)"),
-        )
-        .arg(
             Arg::new("initial-request")
                 .hide(true)
                 .long("initial-request")
                 .action(ArgAction::SetTrue)
                 .help("Read initial request from stdin"),
+        )
+        .arg(
+            Arg::new("log")
+                .long("log")
+                .value_name("PATH")
+                .help("File to write the log into instead of stderr"),
+        )
+        // Startup options
+        .arg(
+            clap::Arg::new("snippet-support")
+                .long("snippet-support")
+                .value_parser(clap::value_parser!(bool))
+                .default_value("true")
+                .help("Snippet support (completions with placeholders)"),
+        )
+        .arg(
+            Arg::new("file-watch-support")
+                .long("file-watch-support")
+                .value_parser(clap::value_parser!(bool))
+                .default_value("false")
+                .help("File watcher support"),
         )
         .arg(
             Arg::new("v")
@@ -125,18 +140,18 @@ fn main() {
                 .help("Sets the level of verbosity (use up to 4 times)"),
         )
         .arg(
-            Arg::new("log")
-                .long("log")
-                .value_name("PATH")
-                .help("File to write the log into instead of stderr"),
+            Arg::new("timeout")
+                .short('t')
+                .long("timeout")
+                .value_name("TIMEOUT")
+                .help("Session timeout in seconds")
+                .default_value("1800"),
         )
         .get_matches();
 
     if matches.get_flag("kakoune") {
         process::exit(kakoune());
     }
-
-    let mut config = include_str!("../kak-lsp.toml").to_string();
 
     let try_config_dir = |config_dir: Option<PathBuf>| {
         let config_dir = match config_dir {
@@ -165,10 +180,6 @@ fn main() {
         .or_else(|| try_config_dir(dirs::preference_dir())) // Historical config dir on macOS.
         ;
 
-    if let Some(config_path) = config_path.as_ref() {
-        config = fs::read_to_string(config_path).expect("Failed to read config");
-    }
-
     let session = String::from(matches.get_one::<String>("session").unwrap());
 
     let mut raw_request = Vec::new();
@@ -178,59 +189,29 @@ fn main() {
             .expect("Failed to read stdin");
     }
 
-    #[allow(deprecated)]
-    #[allow(clippy::blocks_in_conditions)]
-    let mut config: Config = match toml::from_str(&config)
-        .map_err(|err| err.to_string())
-        .and_then(|mut cfg: Config| {
-            // Translate legacy config.
-            if !cfg.language.is_empty()
-                && (!cfg.language_server.is_empty() || !cfg.language_ids.is_empty())
-            {
-                return Err(
-                    "incompatible options: language_server/language_id and legacy language"
-                        .to_string(),
-                );
-            }
-            if cfg.language_server.is_empty() {
-                for (language_id, language) in cfg.language.drain() {
-                    for filetype in &language.filetypes {
-                        if filetype != &language_id {
-                            cfg.language_ids
-                                .insert(filetype.clone(), language_id.clone());
-                        }
-                    }
-                    cfg.language_server.insert(
-                        format!(
-                            "{}:{}",
-                            language_id,
-                            language.command.as_ref().unwrap_or(&"".to_string())
-                        ),
-                        language,
-                    );
-                }
-            }
-            Ok(cfg)
-        }) {
-        Ok(cfg) => cfg,
-        Err(err) => {
-            report_config_error(
-                &session,
-                &raw_request,
-                format!(
-                    "failed to parse config file {}: {}",
-                    config_path.unwrap().display(),
-                    err
-                ),
-            );
-        }
+    let mut config = if let Some(config_path) = config_path {
+        let mut config = parse_legacy_config(&config_path, &raw_request, &session);
+        config.server.session = session;
+        config
+    } else {
+        let mut config = Config::default();
+        config.server.session = session;
+        config.snippet_support = *matches.get_one::<bool>("snippet-support").unwrap();
+        config.file_watch_support = *matches.get_one::<bool>("file-watch-support").unwrap();
+        config
     };
 
-    config.server.session = session;
-
-    if let Some(timeout) = matches.get_one::<String>("timeout") {
-        config.server.timeout = timeout.parse().unwrap();
-    }
+    config.server.timeout = matches
+        .get_one::<String>("timeout")
+        .unwrap()
+        .parse()
+        .unwrap_or_else(|err| {
+            report_config_error(
+                &config.server.session,
+                &raw_request,
+                format!("failed to parse --timeout parameter: {err}"),
+            )
+        });
 
     if matches.get_flag("request") {
         let mut path = util::temp_dir();
@@ -295,7 +276,7 @@ fn main() {
         }
         // Setting up the logger after potential daemonization,
         // otherwise it refuses to work properly.
-        let (_guard, log_path) = setup_logger(&config, &matches);
+        let (_guard, log_path) = setup_logger(&matches);
         let log_path = Box::leak(log_path);
         let code = session::start(&config, log_path, initial_request);
         goodbye(&config.server.session, code);
@@ -371,6 +352,49 @@ fn report_config_error(session: &str, raw_request: &[u8], error_message: String)
     process::exit(1);
 }
 
+fn parse_legacy_config(config_path: &PathBuf, raw_request: &[u8], session: &str) -> Config {
+    let raw_config = fs::read_to_string(config_path).expect("Failed to read config");
+    #[allow(deprecated)]
+    #[allow(clippy::blocks_in_conditions)]
+    match toml::from_str(&raw_config)
+        .map_err(|err| err.to_string())
+        .and_then(|mut cfg: Config| {
+            // Translate legacy config.
+            if !cfg.language.is_empty()
+                && (!cfg.language_server.is_empty() || !cfg.language_ids.is_empty())
+            {
+                return Err(
+                    "incompatible options: language_server/language_id and legacy language"
+                        .to_string(),
+                );
+            }
+            if cfg.language_server.is_empty() {
+                for (language_id, language) in cfg.language.drain() {
+                    cfg.language_server.insert(
+                        format!(
+                            "{}:{}",
+                            language_id,
+                            language.command.as_ref().unwrap_or(&"".to_string())
+                        ),
+                        language,
+                    );
+                }
+            }
+            Ok(cfg)
+        }) {
+        Ok(cfg) => cfg,
+        Err(err) => report_config_error(
+            session,
+            raw_request,
+            format!(
+                "failed to parse config file {}: {}",
+                config_path.display(),
+                err
+            ),
+        ),
+    }
+}
+
 fn spin_up_server(raw_request: &[u8]) {
     let args = env::args()
         .filter(|arg| arg != "--request")
@@ -391,14 +415,11 @@ fn spin_up_server(raw_request: &[u8]) {
     child.wait().expect("Failed to daemonize server");
 }
 
-fn setup_logger(
-    config: &Config,
-    matches: &ArgMatches,
-) -> (slog_scope::GlobalLoggerGuard, Box<Option<PathBuf>>) {
+fn setup_logger(matches: &ArgMatches) -> (slog_scope::GlobalLoggerGuard, Box<Option<PathBuf>>) {
     let mut verbosity = matches.get_count("v");
 
     if verbosity == 0 {
-        verbosity = config.verbosity
+        verbosity = 2;
     }
 
     let level = match verbosity {

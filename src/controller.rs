@@ -46,7 +46,7 @@ pub fn start(
     for route in routes {
         {
             // should be fine to unwrap because request was already routed which means language is configured
-            let server_config = &config.language_server[&route.server_name];
+            let server_config = &server_configs(&config, &initial_request.meta)[&route.server_name];
             let server_transport = match language_server_transport::start(
                 &route.server_name,
                 server_config.command.as_ref().unwrap_or(&route.server_name),
@@ -763,7 +763,7 @@ fn dispatch_server_request(
             progress::work_done_progress_create(request.params, ctx)
         }
         request::WorkspaceConfiguration::METHOD => {
-            workspace::configuration(request.params, server_name, ctx)
+            workspace::configuration(meta, request.params, server_name, ctx)
         }
         request::ShowMessageRequest::METHOD => {
             return show_message::show_message_request(meta, server_name, request, ctx);

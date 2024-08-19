@@ -1,8 +1,15 @@
 ## Unreleased
 
+`kak-lsp.toml` has been removed and support for it is deprecated in favor of new Kakoune options `lsp_servers`, `lsp_semantic_tokens`, `lsp_timeout`, `lsp_snippet_support` and `lsp_file_watch_support`.
+For backwards compatibility, the new options are ignored if a `kak-lsp.toml` exists.
+See the README or `kak-lsp --kakoune` for details.
+
 Additions:
 - The `--session` option is no longer required when using `--kakoune`, simplifying the recommended configuration.
 - `kak-lsp --kakoune` now pipes its output into `${PAGER:-less}` if stdout is a TTY.
+
+Breaking changes:
+- The `verbosity` and `server.timeout` settings `kak-lsp.toml` are ignored. TODO change this I guess
 
 ## 17.1.2 - 2024-08-17
 

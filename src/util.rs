@@ -1,6 +1,5 @@
-use crate::types::*;
 use std::os::unix::fs::DirBuilderExt;
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 use std::{env, fs, io, path};
 
 pub fn temp_dir() -> path::PathBuf {
@@ -93,30 +92,6 @@ pub fn escape_keys(s: &str) -> String {
 /// "range-specs".
 pub fn escape_tuple_element(s: &str) -> String {
     s.replace('\\', "\\\\").replace('|', "\\|")
-}
-
-/// Convert language filetypes configuration into a more lookup-friendly form.
-pub fn filetype_to_language_id_map(
-    config: &Config,
-) -> HashMap<String, (LanguageId, Vec<ServerName>)> {
-    let mut filetypes: HashMap<String, (LanguageId, Vec<ServerName>)> = HashMap::default();
-
-    for (server_name, lang_config) in &config.language_server {
-        for filetype in &lang_config.filetypes {
-            let entry = filetypes.entry(filetype.clone()).or_insert((
-                config
-                    .language_ids
-                    .get(filetype)
-                    .cloned()
-                    .unwrap_or_else(|| filetype.clone()),
-                Vec::new(),
-            ));
-            let (_, servers) = entry;
-            servers.push(server_name.clone());
-        }
-    }
-
-    filetypes
 }
 
 pub fn read_document(filename: &str) -> io::Result<String> {

@@ -371,10 +371,12 @@ impl Context {
 
 pub fn meta_for_session(session: String, client: Option<String>) -> EditorMeta {
     EditorMeta {
+        language_server: HashMap::new(),
+        semantic_tokens: SemanticTokenConfig::default(),
         session,
         client,
         buffile: "".to_string(),
-        filetype: "".to_string(), // filetype is not used by ctx.exec, but it's definitely a code smell
+        language_id: "".to_string(), // filetype is not used by ctx.exec, but it's definitely a code smell
         version: 0,
         fifo: None,
         command_fifo: None,

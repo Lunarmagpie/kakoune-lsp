@@ -4,16 +4,17 @@
 
 . test/lib.sh
 
-cat > .config/kak-lsp/kak-lsp.toml << EOF
-[language.typescript]
-filetypes = ["typescript"]
-roots = ["main.ts"]
-command = "typescript-language-server"
-args = ["--stdio"]
-EOF
-
 cat >> .config/kak/kakrc << EOF
 set-option global lsp_auto_show_code_actions false
+
+hook global WinSetOption filetype=typescript %{
+	set-option buffer lsp_servers %{
+		[language_server.typescript-language-server]
+		roots = ["main.ts"]
+		command = "typescript-language-server"
+		args = ["--stdio"]
+	}
+}
 EOF
 
 cat > main.ts << EOF
